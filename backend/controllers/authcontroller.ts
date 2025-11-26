@@ -39,7 +39,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
 // 2. LOGIN
 export const loginUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body;a
     
     if (!email || !password) {
         return res.status(400).json({ message: "Email and Password required" });
@@ -71,7 +71,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 };
 
-// 3. SOCIAL LOGIN (FIXED: Enforce non-null username)
+// 3. SOCIAL LOGIN 
 export const socialLoginUser = async (req: Request, res: Response) => {
     const { email, displayName } = req.body; 
 
@@ -84,7 +84,7 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         let isNewUser = false;
         
         if (!user) {
-            // FIX: Ensure username is always a valid string using fallback
+            // New User Creation Logic
             const finalUsername = displayName || email.split('@')[0] || `user_${Math.random().toString(36).substring(7)}`; 
             const hashedPassword = await bcrypt.hash("SOCIAL_LOGIN_USER_PASS", 10);
             
@@ -108,10 +108,7 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        // Log the specific error that caused 500
-        console.error("❌ SOCIAL LOGIN 500 ERROR:", error);
-        
-        // Return a generic 500 message
+        console.error(" SOCIAL LOGIN 500 ERROR:", error);
         return res.status(500).json({ message: "Server Error: Could not process social login. Check DB logs." });
     }
 };
