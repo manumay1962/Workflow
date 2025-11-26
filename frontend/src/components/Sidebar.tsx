@@ -4,7 +4,7 @@ import {
     Cpu, Library 
   } from 'lucide-react';
   
-  // Accept a prop to handle the click
+  
   const Sidebar = ({ onCreateClick }: { onCreateClick: () => void }) => {
     return (
       <aside className="w-64 bg-[#1a3b6e] text-white flex flex-col h-full font-sans">

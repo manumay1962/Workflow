@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- USER MODEL ---
+
 model User {
   id       Int     @id @default(autoincrement())
   email    String  @unique
@@ -15,7 +15,7 @@ model User {
   username String? 
 }
 
-// --- WORKFLOW MODEL ---
+
 model Workflow {
   id       String   @id
   name     String

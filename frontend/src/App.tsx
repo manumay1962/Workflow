@@ -7,7 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import Home from './components/Home';
 import Login from './components/Login';
 
-// NEW: API Base URL Definition for Vercel deployment
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // --- WRAPPER COMPONENT ---
@@ -18,7 +18,7 @@ const AppContainer = () => {
   const [token, setToken] = useState(""); 
   const navigate = useNavigate();
 
-  // Load state from localStorage on mount (Persistence)
+  
   useEffect(() => {
     const savedLogin = localStorage.getItem("isLoggedIn");
     const savedEmail = localStorage.getItem("userEmail");
@@ -52,22 +52,22 @@ const AppContainer = () => {
     setUsername(uName);
     setToken(jwtToken);
     
-    navigate('/home'); // Redirect to home page
+    navigate('/home'); 
   };
 
   const handleLogout = async () => {
     await signOut(auth); 
-    localStorage.clear(); // Clear all persistence data
+    localStorage.clear(); 
     
     setIsLoggedIn(false);
     setUserEmail("");
     setUsername("");
     setToken("");
     
-    navigate('/login'); // Redirect to login page
+    navigate('/login'); 
   };
 
-  // --- ROUTING LOGIC ---
+  
   return (
     <Routes>
         <Route 
@@ -78,13 +78,12 @@ const AppContainer = () => {
             path="/home" 
             element={isLoggedIn ? <Home userEmail={userEmail} username={username} token={token} onLogout={handleLogout} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/login" />} 
         />
-        {/* Default catch-all route */}
+        
         <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }
 
-// --- MAIN APP ---
 export default function App() {
   return (
     <Router>

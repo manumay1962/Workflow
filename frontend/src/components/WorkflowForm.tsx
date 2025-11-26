@@ -12,7 +12,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
     const [name, setName] = useState("");
     const [status, setStatus] = useState("Running");
     const [schedule, setSchedule] = useState("* * * * *");
-    // DEFAULT TAGS: Empty string now, user will provide
+    
     const [tagsInput, setTagsInput] = useState(""); 
     
     const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                         </div>
                     )}
 
-                    {/* Workflow Name */}
+                
                     <div>
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Workflow Name</label>
                         <input 
@@ -93,8 +93,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                             required 
                         />
                     </div>
-
-                    {/* TAGS FIELD (User Input) */}
+                    
                     <div>
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1">
                             <Tag size={14} className="inline"/> Tags (Required Field/Context)
@@ -110,7 +109,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                     </div>
                     
                     <div className="grid grid-cols-2 gap-5">
-                        {/* Status Field */}
+                    
                         <div>
                             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Initial Status</label>
                             <div className="relative">
@@ -129,7 +128,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                             </div>
                         </div>
 
-                        {/* Schedule Field */}
+                        
                         <div>
                             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Schedule (Cron)</label>
                             <input 
@@ -144,7 +143,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                     
                     <p className="text-xs text-gray-400 mt-1.5 pt-4 border-t border-gray-100">Owner is automatically set to your email ({creatorEmail}) for security.</p>
 
-                    {/* Footer Actions */}
+                    
                     <div className="pt-2 flex justify-end gap-3">
                         <button 
                             type="button" 

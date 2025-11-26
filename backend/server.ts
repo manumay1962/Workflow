@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
-import { registerUser, loginUser, socialLoginUser } from './controllers/authController'; 
+ 
 import bcrypt from 'bcryptjs';
+import { loginUser, registerUser, socialLoginUser } from './controllers/authcontroller';
 
 dotenv.config();
 
@@ -11,11 +12,10 @@ const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 5000;
 
-// Middleware MUST be at the top
 app.use(cors());
 app.use(express.json()); 
 
-// --- SEEDING (Using Hashed Password) ---
+
 async function seedDatabase() {
   try {
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
@@ -47,9 +47,7 @@ async function seedDatabase() {
 }
 seedDatabase();
 
-// --- API ENDPOINTS ---
 
-// 1. AUTH ROUTES (Using Controllers)
 app.post('/api/register', registerUser);
 app.post('/api/login', loginUser);
 app.post('/api/auth/social', socialLoginUser); 
@@ -77,7 +75,7 @@ app.put('/api/workflows/:id/status', async (req: any, res: any) => {
         return res.status(404).json({ message: "Workflow ID not found to update." });
 
     } catch (error: any) {
-        console.error("❌ DB/Internal Error on PUT:", error);
+        console.error(" DB/Internal Error on PUT:", error);
         return res.status(500).json({ 
             message: "Error updating workflow status. Check server logs."
         });
@@ -113,7 +111,7 @@ app.get('/api/workflows', async (req, res) => {
     }
 });
 
-// 3. OTHER ROUTES
+
 app.post('/api/forgot-password', async (req: any, res: any) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email required" });
@@ -122,5 +120,5 @@ app.post('/api/forgot-password', async (req: any, res: any) => {
 
 
 app.listen(port, () => {
-    console.log(`🚀 Server running on http://localhost:${port}`);
+    console.log(` Server running on http://localhost:${port}`);
 });
