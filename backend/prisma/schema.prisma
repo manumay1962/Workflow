@@ -5,7 +5,9 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schema   = "public"
 }
+
 
 model User {
   id       Int     @id @default(autoincrement())
@@ -23,5 +25,5 @@ model Workflow {
   runs     String[]
   schedule String
   nextRun  String
-  isPublic Boolean @default(false)
+  isPublic Boolean  @default(false)
 }
