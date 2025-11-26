@@ -37,9 +37,9 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
-// 2. LOGIN
+// 2. LOGIN (Syntax Corrected)
 export const loginUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body;a
+    const { email, password } = req.body; // <-- 'a' removed from req.bodya
     
     if (!email || !password) {
         return res.status(400).json({ message: "Email and Password required" });
@@ -108,7 +108,7 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error(" SOCIAL LOGIN 500 ERROR:", error);
+        console.error("❌ SOCIAL LOGIN 500 ERROR:", error);
         return res.status(500).json({ message: "Server Error: Could not process social login. Check DB logs." });
     }
 };
