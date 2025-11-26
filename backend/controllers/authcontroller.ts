@@ -39,7 +39,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
 // 2. LOGIN (Syntax Corrected)
 export const loginUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body; // <-- 'a' removed from req.bodya
+    const { email, password } = req.body;
     
     if (!email || !password) {
         return res.status(400).json({ message: "Email and Password required" });
