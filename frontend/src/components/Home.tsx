@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LogOut, Filter, Search, SlidersHorizontal, Plus, ChevronDown } from 'lucide-react';
+import { LogOut,  Search, Plus, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import WorkflowForm from './WorkflowForm';
 
