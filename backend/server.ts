@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['https://your-frontend-render-url.com'],
+  origin: ['https://workflow-1-kq5k.onrender.com/'],
   credentials: true
 }));
 
