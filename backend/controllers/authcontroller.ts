@@ -37,7 +37,7 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
-// 2. LOGIN (Syntax Corrected)
+
 export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     
@@ -84,7 +84,6 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         let isNewUser = false;
         
         if (!user) {
-            // New User Creation Logic
             const finalUsername = displayName || email.split('@')[0] || `user_${Math.random().toString(36).substring(7)}`; 
             const hashedPassword = await bcrypt.hash("SOCIAL_LOGIN_USER_PASS", 10);
             
