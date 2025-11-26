@@ -18,7 +18,8 @@ const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (us
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const finalUsername = username || email.split('@')[0];
-        onComplete(finalUsername, "REQUIRES_TOKEN_FETCH"); 
+        // Note: The token is managed in the parent component's state (Login.tsx)
+        onComplete(finalUsername, "DUMMY_TOKEN_PASS"); 
     };
 
     return (
@@ -62,8 +63,8 @@ const ForgotPasswordModal = ({ show, onClose, API_BASE_URL }: { show: boolean, o
         e.preventDefault();
         setError("");
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/forgot-password`, { email: resetEmail });
-            setResetMsg(res.data.message);
+            await axios.post(`${API_BASE_URL}/api/forgot-password`, { email: resetEmail });
+            setResetMsg(`Reset link sent to ${resetEmail}`);
         } catch (err: any) { 
             setError("Error sending link. Email not found."); 
         }
@@ -137,20 +138,21 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
     try {
         const res = await signInWithPopup(auth, provider);
         
-        let userEmail = res.user.email || `hidden_${res.user.uid}`; 
-        
+        let userEmail = res.user.email; 
+        if (!userEmail) userEmail = `hidden_${res.user.uid}`; // Fallback if private
+
         if (userEmail.startsWith('hidden_')) { 
             setError("Warning: Email is private. Proceeding with UID."); 
         }
 
-        const backendRes = await axios.post(`${API_BASE_URL}/api/auth/social`, { email: userEmail });
+        const backendRes = await axios.post(`${API_BASE_URL}/api/auth/social`, { email: userEmail, displayName: res.user.displayName });
         
         const token = backendRes.data.token;
         const uName = backendRes.data.user.username || "User";
         
         if (backendRes.data.isNewUser) {
             setFinalEmail(userEmail);
-            setSocialToken(token); // Save the valid token temporarily
+            setSocialToken(token); 
             setShowOnboarding(true); 
         } else {
             onLoginSuccess(userEmail, uName, token);
@@ -162,10 +164,11 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
     }
   }
 
-  const handleOnboardingComplete = (uName: string, dummyToken: string) => {
+  const handleOnboardingComplete = (uName: string, tokenPlaceholder: string) => {
+    // Uses the real socialToken saved in state
     setShowOnboarding(false);
     onLoginSuccess(finalEmail, uName, socialToken); 
-    setSocialToken(""); // Clear state
+    setSocialToken(""); 
   };
 
 
@@ -178,10 +181,9 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
       
       <ForgotPasswordModal show={showForgot} onClose={() => setShowForgot(false)} API_BASE_URL={API_BASE_URL} />
 
-      {/* Main Container: Half-and-Half Layout */}
       <div className="w-full max-w-5xl h-[600px] flex rounded-2xl shadow-2xl overflow-hidden border border-white/50">
         
-        {/* Left Half: Welcome/Blue Section (Hidden on Mobile) */}
+        {/* Left Half: Welcome/Blue Section */}
         <div className="hidden md:flex w-1/2 bg-blue-700 items-center justify-center p-12 text-white">
             <div className="text-center">
                 <h2 className="text-5xl font-extrabold mb-4 tracking-tight">

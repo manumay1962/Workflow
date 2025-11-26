@@ -21,7 +21,7 @@ interface HomeProps {
     username: string;
     token: string;
     onLogout: () => void;
-    API_BASE_URL: string; // VERCEL FIX: Accept API_BASE_URL
+    API_BASE_URL: string;
 }
 
 const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
@@ -36,7 +36,6 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
   const fetchWorkflows = () => {
     if (!userEmail) return; 
 
-    // FIX 1: Use API_BASE_URL for fetching workflows
     axios.get(`${API_BASE_URL}/api/workflows?userEmail=${userEmail}`)
       .then(res => setWorkflows(res.data))
       .catch(err => console.error("Workflow Fetch Error:", err));
@@ -55,20 +54,18 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
     ));
 
     try {
-        // FIX 2: Use API_BASE_URL for status update
         await axios.put(`${API_BASE_URL}/api/workflows/${workflowId}/status`, { newStatus });
         fetchWorkflows(); 
     } catch (error: any) {
         const errorDetails = error.response?.data?.details || error.message || "Unknown Error";
-        console.error("🔴 Server Toggle Error:", errorDetails); 
-        alert(`❌ Failed to update status. Reason: ${errorDetails.substring(0, 100)}`); 
+        console.error(" Server Toggle Error:", errorDetails); 
+        alert(`Failed to update status. Reason: ${errorDetails.substring(0, 100)}`); 
         fetchWorkflows();
     }
   };
   
   // LOGIC: Filter and Sort Workflows
   const filteredWorkflows = workflows.filter(wf => {
-      // 1. Status Filter FIX
       let statusMatch = true;
       if (filterStatus === 'Active') {
           statusMatch = wf.status === 'Running';
@@ -78,7 +75,6 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
           statusMatch = wf.status === filterStatus; 
       }
       
-      // 2. Search Term Filter 
       const searchLower = searchTerm.toLowerCase();
       const searchMatch = wf.name.toLowerCase().includes(searchLower) ||
                           wf.owner.toLowerCase().includes(searchLower) ||
@@ -86,14 +82,13 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
                           
       return statusMatch && searchMatch;
   }).sort((a, b) => {
-      // 3. Sorting Logic
       const idA = a.id;
       const idB = b.id;
       
       if (sortOrder === 'latest') {
-          return idA < idB ? 1 : idA > idB ? -1 : 0; // Latest first
+          return idA < idB ? 1 : idA > idB ? -1 : 0; 
       } else {
-          return idA < idB ? -1 : idA > idB ? 1 : 0; // Older first
+          return idA < idB ? -1 : idA > idB ? 1 : 0; 
       }
   });
 
@@ -124,7 +119,7 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
             onClose={() => setShowCreateModal(false)} 
             onSave={fetchWorkflows} 
             creatorEmail={userEmail}
-            API_BASE_URL={API_BASE_URL} // FIX 3: Pass API_BASE_URL to WorkflowForm
+            API_BASE_URL={API_BASE_URL} 
           />
       )}
 
@@ -155,7 +150,7 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
 
          <div className="px-8 py-6">
             
-            {/* --- STATUS FILTER TABS --- */}
+            {/* --- STATUS FILTER TABS (FIXED onClick) --- */}
             <div className="mb-6 flex gap-3 border-b border-gray-200 pb-3">
                 <button 
                     onClick={() => { setFilterStatus('All'); setSearchTerm(''); }} 
@@ -191,8 +186,6 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
                         onChange={(e) => setSearchTerm(e.target.value)} 
                     />
                 </div>
-                
-                {/* Sorting and Create Button */}
                 <div className="flex gap-3 w-full md:w-auto justify-end">
                     
                     {/* Sorting Dropdown */}
@@ -208,7 +201,6 @@ const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
                         <ChevronDown className="absolute right-2.5 top-2.5 text-gray-500 pointer-events-none" size={16} />
                     </div>
 
-                    {/* Create Workflow Button */}
                     <button 
                         onClick={() => setShowCreateModal(true)}
                         className="px-4 py-2 bg-[#1a3b6e] text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-900 shadow-sm"
