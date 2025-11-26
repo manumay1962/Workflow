@@ -11,15 +11,16 @@ interface LoginProps {
 }
 
 // --- ONBOARDING MODAL ---
-const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (username: string, token: string) => void }) => {
+// FIX 1: Removed token from onComplete function signature
+const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (username: string) => void }) => {
     const [role, setRole] = useState("Developer");
     const [username, setUsername] = useState("");
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const finalUsername = username || email.split('@')[0];
-        // Note: The token is managed in the parent component's state (Login.tsx)
-        onComplete(finalUsername, "DUMMY_TOKEN_PASS"); 
+        // FIX 2: Only pass username (not token)
+        onComplete(finalUsername); 
     };
 
     return (
@@ -53,7 +54,7 @@ const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (us
 };
 
 
-// --- FORGOT PASSWORD MODAL ---
+// --- FORGOT PASSWORD MODAL (Unchanged) ---
 const ForgotPasswordModal = ({ show, onClose, API_BASE_URL }: { show: boolean, onClose: () => void, API_BASE_URL: string }) => {
     const [resetEmail, setResetEmail] = useState("");
     const [resetMsg, setResetMsg] = useState("");
@@ -63,8 +64,8 @@ const ForgotPasswordModal = ({ show, onClose, API_BASE_URL }: { show: boolean, o
         e.preventDefault();
         setError("");
         try {
-            await axios.post(`${API_BASE_URL}/api/forgot-password`, { email: resetEmail });
-            setResetMsg(`Reset link sent to ${resetEmail}`);
+            const res = await axios.post(`${API_BASE_URL}/api/forgot-password`, { email: resetEmail });
+            setResetMsg(res.data.message);
         } catch (err: any) { 
             setError("Error sending link. Email not found."); 
         }
@@ -108,7 +109,7 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [finalEmail, setFinalEmail] = useState("");
-  const [socialToken, setSocialToken] = useState(""); // State to temporarily hold token
+  const [socialToken, setSocialToken] = useState(""); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +140,7 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
         const res = await signInWithPopup(auth, provider);
         
         let userEmail = res.user.email; 
-        if (!userEmail) userEmail = `hidden_${res.user.uid}`; // Fallback if private
+        if (!userEmail) userEmail = `hidden_${res.user.uid}`; 
 
         if (userEmail.startsWith('hidden_')) { 
             setError("Warning: Email is private. Proceeding with UID."); 
@@ -164,8 +165,8 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
     }
   }
 
-  const handleOnboardingComplete = (uName: string, tokenPlaceholder: string) => {
-    // Uses the real socialToken saved in state
+  // FIX 3: Removed dummyToken argument
+  const handleOnboardingComplete = (uName: string) => {
     setShowOnboarding(false);
     onLoginSuccess(finalEmail, uName, socialToken); 
     setSocialToken(""); 
@@ -173,6 +174,7 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
 
 
   if (showOnboarding) {
+      // FIX 4: Updated prop passed to OnboardingModal
       return <OnboardingModal email={finalEmail} onComplete={handleOnboardingComplete} />;
   }
 
