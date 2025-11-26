@@ -6,9 +6,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import Home from './components/Home';
 import Login from './components/Login';
 
-// VERCEL FIX: API Base URL Definition. 
-// Uses Vercel's variable if available, otherwise uses local .env value (http://localhost:5000).
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// FIX: API Base URL is now relative/empty for Render Redirects
+const API_BASE_URL = ''; 
 
 const AppContainer = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
