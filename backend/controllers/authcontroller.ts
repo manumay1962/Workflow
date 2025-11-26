@@ -10,13 +10,71 @@ const generateToken = (userId: number, email: string) => {
     return jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '1d' }); 
 };
 
-// ... (registerUser and loginUser are unchanged) ...
+// 1. REGISTER
+export const registerUser = async (req: Request, res: Response) => {
+    const { email, password, username } = req.body;
+    
+    if (!email || !password || !username) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
 
-// 3. SOCIAL LOGIN (FIXED: Handles 500 DB Crash)
+    try {
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists. Please Login." });
+        }
+        
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: { email, password: hashedPassword, username }
+        });
+        
+        return res.json({ success: true, message: "Registration Successful! Please Login." });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server Error during registration." });
+    }
+};
+
+// 2. LOGIN
+export const loginUser = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and Password required" });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+        
+        if (!user) {
+            return res.status(401).json({ message: "User not found. Please Register." });
+        }
+        
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid password." });
+        }
+
+        const token = generateToken(user.id, user.email);
+
+        return res.json({ 
+            success: true, 
+            token: token, 
+            user: { email: user.email, username: user.username || "User" } 
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server Error during login." });
+    }
+};
+
+// 3. SOCIAL LOGIN (FIXED: Enforce non-null username)
 export const socialLoginUser = async (req: Request, res: Response) => {
     const { email, displayName } = req.body; 
 
-    // Safety check: Frontend should handle this, but backend must be strict
     if (!email) {
         return res.status(400).json({ message: "Email required" });
     }
@@ -26,8 +84,8 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         let isNewUser = false;
         
         if (!user) {
-            // FIX: Ensure username is NEVER null
-            const finalUsername = displayName || email.split('@')[0] || 'UnknownUser'; 
+            // FIX: Ensure username is always a valid string using fallback
+            const finalUsername = displayName || email.split('@')[0] || `user_${Math.random().toString(36).substring(7)}`; 
             const hashedPassword = await bcrypt.hash("SOCIAL_LOGIN_USER_PASS", 10);
             
             user = await prisma.user.create({
@@ -51,7 +109,7 @@ export const socialLoginUser = async (req: Request, res: Response) => {
 
     } catch (error) {
         // Log the specific error that caused 500
-        console.error(" SOCIAL LOGIN 500 ERROR:", error);
+        console.error("❌ SOCIAL LOGIN 500 ERROR:", error);
         
         // Return a generic 500 message
         return res.status(500).json({ message: "Server Error: Could not process social login. Check DB logs." });
