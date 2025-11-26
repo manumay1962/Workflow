@@ -1,123 +1,97 @@
+// server.ts
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
-
-import bcrypt from 'bcryptjs';
 import { loginUser, registerUser, socialLoginUser } from './controllers/authcontroller';
 
 dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
-const port = process.env.PORT; 
+const port = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 
-// --- SEEDING ---
-async function seedDatabase() {
-  try {
-    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password123';
-    
-    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10); 
-    
-    await prisma.user.upsert({
-      where: { email: ADMIN_EMAIL },
-      update: {}, 
-      create: { email: ADMIN_EMAIL, password: hashedPassword, username: "Admin" },
-    });
-
-    const count = await prisma.workflow.count();
-    if (count === 0) {
-      await prisma.workflow.createMany({
-        data: [
-          { id: "wf001", name: "Daily ETL Pipeline (Public)", tags: ["etl"], status: "Running", owner: ADMIN_EMAIL, runs: ["success"], schedule: "Daily", nextRun: "Tomorrow", isPublic: true },
-          { id: "wf002", name: "Weekly Sync (Public)", tags: ["sql"], status: "Paused", owner: ADMIN_EMAIL, runs: ["success"], schedule: "Weekly", nextRun: "Next Week", isPublic: true }
-        ]
-      });
-    }
-  } catch (error) {
-    console.error("Seed Error:", error);
-  }
-}
-seedDatabase();
-
-// --- API ENDPOINTS ---
-
-// 1. AUTH ROUTES
+// ----------------- AUTH ROUTES -----------------
 app.post('/api/register', registerUser);
 app.post('/api/login', loginUser);
-app.post('/api/auth/social', socialLoginUser); 
+app.post('/api/auth/social', socialLoginUser);
 
-// 2. WORKFLOW MANAGEMENT ROUTES
+// ------------- WORKFLOW MANAGEMENT ROUTES -------------
 app.put('/api/workflows/:id/status', async (req: any, res: any) => {
-    const { id } = req.params;
-    const { newStatus } = req.body;
-    
-    if (!newStatus || (newStatus !== 'Running' && newStatus !== 'Paused')) {
-        return res.status(400).json({ message: "Invalid status provided." });
+  const { id } = req.params;
+  const { newStatus } = req.body;
+
+  if (!newStatus || (newStatus !== 'Running' && newStatus !== 'Paused')) {
+    return res.status(400).json({ message: "Invalid status provided." });
+  }
+
+  try {
+    const result = await prisma.workflow.updateMany({
+      where: { id },
+      data: { status: newStatus },
+    });
+
+    if (result.count > 0) {
+      const updatedWorkflow = await prisma.workflow.findUnique({ where: { id } });
+      return res.json(updatedWorkflow);
     }
 
-    try {
-        const result = await prisma.workflow.updateMany({
-            where: { id: id },
-            data: { status: newStatus }
-        });
-        
-        if (result.count > 0) {
-            const updatedWorkflow = await prisma.workflow.findUnique({ where: { id } });
-            return res.json(updatedWorkflow);
-        }
-        
-        return res.status(404).json({ message: "Workflow ID not found to update." });
-
-    } catch (error) {
-        return res.status(500).json({ 
-            message: "Error updating workflow status. Check server logs."
-        });
-    }
+    return res.status(404).json({ message: "Workflow ID not found to update." });
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating workflow status. Check server logs." });
+  }
 });
 
 app.post('/api/workflows', async (req: any, res: any) => {
-    const { name, owner, schedule, status, userEmail, tags } = req.body; 
-    
-    if (!name || !userEmail) return res.status(400).json({ message: "Name and User Email (Creator) are required" });
+  const { name, owner, schedule, status, userEmail, tags } = req.body;
 
-    try {
-        const newWorkflow = await prisma.workflow.create({
-            data: { id: `wf-${Date.now()}`, name, owner: userEmail, status: status || "Running", schedule: schedule || "* * * * *", tags: tags, runs: ["pending"], nextRun: "Tomorrow", isPublic: false }
-        });
-        return res.json(newWorkflow);
-    } catch (error) {
-        return res.status(500).json({ message: "Database Error" });
-    }
+  if (!name || !userEmail) return res.status(400).json({ message: "Name and User Email (Creator) are required" });
+
+  try {
+    const newWorkflow = await prisma.workflow.create({
+      data: {
+        id: `wf-${Date.now()}`,
+        name,
+        owner: userEmail,
+        status: status || "Running",
+        schedule: schedule || "* * * * *",
+        tags,
+        runs: ["pending"],
+        nextRun: "Tomorrow",
+        isPublic: false,
+      },
+    });
+    return res.json(newWorkflow);
+  } catch (error) {
+    return res.status(500).json({ message: "Database Error" });
+  }
 });
 
 app.get('/api/workflows', async (req, res) => {
-    const userEmail = req.query.userEmail as string; 
-    if (!userEmail) return res.status(400).json({ error: "User email is required for fetching workflows." });
-    
-    try {
-        const workflows = await prisma.workflow.findMany({
-            where: { OR: [{ isPublic: true }, { owner: userEmail }] }
-        });
-        return res.json(workflows);
-    } catch (error) {
-        return res.status(500).json({ error: "Failed to fetch workflows." });
-    }
+  const userEmail = req.query.userEmail as string;
+  if (!userEmail) return res.status(400).json({ error: "User email is required for fetching workflows." });
+
+  try {
+    const workflows = await prisma.workflow.findMany({
+      where: { OR: [{ isPublic: true }, { owner: userEmail }] },
+    });
+    return res.json(workflows);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to fetch workflows." });
+  }
 });
 
-// 3. OTHER ROUTES
+// ----------------- OTHER ROUTES -----------------
 app.post('/api/forgot-password', async (req: any, res: any) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email required" });
-    return res.json({ message: `Reset link sent to ${email}` });
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email required" });
+  return res.json({ message: `Reset link sent to ${email}` });
 });
 
-
+// ----------------- START SERVER -----------------
 app.listen(port, () => {
-    
-    console.log(`🚀 Server listening on port ${port}`); 
+  console.log(`🚀 Server listening on port ${port}`);
 });
