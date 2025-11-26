@@ -5,14 +5,12 @@
   "main": "server.ts",
   "scripts": {
     "build": "tsc",
-    
+    "start": "node dist/server.js",
     "dev": "ts-node server.ts",
     "seed": "ts-node prisma/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    
-  "start": "node build/server.js",
-  "migrate": "prisma migrate deploy",
-  "push": "prisma db push"
+    "migrate": "prisma migrate deploy",
+    "push": "prisma db push"
   },
   "keywords": [],
   "author": "",
