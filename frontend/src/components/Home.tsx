@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LogOut, Search, Plus, ChevronDown } from 'lucide-react';
+import { LogOut, Filter, Search, SlidersHorizontal, Plus, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import WorkflowForm from './WorkflowForm';
 
+// --- TYPES ---
 interface Workflow {
   id: string;
   name: string;
@@ -20,30 +21,30 @@ interface HomeProps {
     username: string;
     token: string;
     onLogout: () => void;
+    API_BASE_URL: string; // VERCEL FIX: Accept API_BASE_URL
 }
 
-const Home = ({ userEmail, username, onLogout }: HomeProps) => {
+const Home = ({ userEmail, username, onLogout, API_BASE_URL }: HomeProps) => {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   
   const [filterStatus, setFilterStatus] = useState('All'); 
   const [searchTerm, setSearchTerm] = useState('');
-  
-  
   const [sortOrder, setSortOrder] = useState('latest'); 
 
   // Function to refresh data from DB
   const fetchWorkflows = () => {
     if (!userEmail) return; 
 
-    axios.get(`http://localhost:5000/api/workflows?userEmail=${userEmail}`)
+    // FIX 1: Use API_BASE_URL for fetching workflows
+    axios.get(`${API_BASE_URL}/api/workflows?userEmail=${userEmail}`)
       .then(res => setWorkflows(res.data))
       .catch(err => console.error("Workflow Fetch Error:", err));
   };
 
   useEffect(() => {
     fetchWorkflows();
-  }, [userEmail]);
+  }, [userEmail, API_BASE_URL]);
 
   // Status Toggle Handler
   const handleStatusToggle = async (workflowId: string, currentStatus: string) => {
@@ -54,19 +55,20 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
     ));
 
     try {
-        await axios.put(`http://localhost:5000/api/workflows/${workflowId}/status`, { newStatus });
+        // FIX 2: Use API_BASE_URL for status update
+        await axios.put(`${API_BASE_URL}/api/workflows/${workflowId}/status`, { newStatus });
         fetchWorkflows(); 
     } catch (error: any) {
         const errorDetails = error.response?.data?.details || error.message || "Unknown Error";
-        console.error(" Server Toggle Error:", errorDetails); 
-        alert(` Failed to update status. Reason: ${errorDetails.substring(0, 100)}`); 
+        console.error("🔴 Server Toggle Error:", errorDetails); 
+        alert(`❌ Failed to update status. Reason: ${errorDetails.substring(0, 100)}`); 
         fetchWorkflows();
     }
   };
   
   // LOGIC: Filter and Sort Workflows
   const filteredWorkflows = workflows.filter(wf => {
-      
+      // 1. Status Filter FIX
       let statusMatch = true;
       if (filterStatus === 'Active') {
           statusMatch = wf.status === 'Running';
@@ -76,7 +78,7 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
           statusMatch = wf.status === filterStatus; 
       }
       
-      // 2. Search Term Filter
+      // 2. Search Term Filter 
       const searchLower = searchTerm.toLowerCase();
       const searchMatch = wf.name.toLowerCase().includes(searchLower) ||
                           wf.owner.toLowerCase().includes(searchLower) ||
@@ -84,19 +86,19 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                           
       return statusMatch && searchMatch;
   }).sort((a, b) => {
-      
+      // 3. Sorting Logic
       const idA = a.id;
       const idB = b.id;
       
       if (sortOrder === 'latest') {
-          return idA < idB ? 1 : idA > idB ? -1 : 0; // Descending (Latest first)
+          return idA < idB ? 1 : idA > idB ? -1 : 0; // Latest first
       } else {
-          return idA < idB ? -1 : idA > idB ? 1 : 0; // Ascending (Older first)
+          return idA < idB ? -1 : idA > idB ? 1 : 0; // Older first
       }
   });
 
   
-  
+  // Function to determine badge class
   const getBadgeClass = (status: string, currentFilter: string) => {
       const base = "px-4 py-1.5 text-sm font-semibold rounded-full cursor-pointer transition-colors border";
       const isActive = status === currentFilter;
@@ -122,12 +124,13 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
             onClose={() => setShowCreateModal(false)} 
             onSave={fetchWorkflows} 
             creatorEmail={userEmail}
+            API_BASE_URL={API_BASE_URL} // FIX 3: Pass API_BASE_URL to WorkflowForm
           />
       )}
 
       <main className="flex-1 overflow-y-auto flex flex-col">
          
-         
+         {/* HEADER - Inline Navbar Logic */}
          <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Workflow List</h1>
@@ -136,14 +139,13 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
             <div className="flex items-center gap-6">
                 <div className="relative hidden md:block">
                     <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                    
+                    {/* Top Right Search (Decorative) */}
                     <input type="text" placeholder="Search data..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm" />
                 </div>
-            
+                {/* Profile Section */}
                 <div className="flex items-center gap-3 pl-6 border-l border-gray-200">
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-semibold text-gray-800">{username}</p>
-                        
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md border-2 border-white text-lg">{initial}</div>
                     <button onClick={onLogout} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><LogOut size={20}/></button>
@@ -153,7 +155,7 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
 
          <div className="px-8 py-6">
             
-            
+            {/* --- STATUS FILTER TABS --- */}
             <div className="mb-6 flex gap-3 border-b border-gray-200 pb-3">
                 <button 
                     onClick={() => { setFilterStatus('All'); setSearchTerm(''); }} 
@@ -174,13 +176,13 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                     Paused ({workflows.filter(wf => wf.status === 'Paused').length})
                 </button>
             </div>
-        
+            {/* --- END STATUS FILTER TABS --- */}
 
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                 <div className="relative w-full md:w-1/2">
-                    
                     <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                    {/* FUNCTIONAL SEARCH BAR */}
                     <input 
                         type="text" 
                         placeholder="Search workflow and tasks..." 
@@ -190,10 +192,10 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                     />
                 </div>
                 
-                
+                {/* Sorting and Create Button */}
                 <div className="flex gap-3 w-full md:w-auto justify-end">
                     
-                    
+                    {/* Sorting Dropdown */}
                     <div className="relative">
                         <select
                             value={sortOrder}
@@ -206,7 +208,7 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                         <ChevronDown className="absolute right-2.5 top-2.5 text-gray-500 pointer-events-none" size={16} />
                     </div>
 
-                    
+                    {/* Create Workflow Button */}
                     <button 
                         onClick={() => setShowCreateModal(true)}
                         className="px-4 py-2 bg-[#1a3b6e] text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-900 shadow-sm"
@@ -250,7 +252,6 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                             <td className="p-4"><span className="px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-600">{wf.owner}</span></td>
                             
                             <td className="p-4 flex gap-1 items-center">
-                    
                                 {wf.runs.slice(0, 4).map((run, i) => (
                                     <div 
                                         key={i} 
@@ -258,12 +259,10 @@ const Home = ({ userEmail, username, onLogout }: HomeProps) => {
                                         title={run}
                                     ></div>
                                 ))}
-                                {/* Add placeholder dots if runs are less than 4 */}
                                 {Array.from({ length: 4 - wf.runs.length }).map((_, i) => (
                                     <div key={`placeholder-${i}`} className="w-2 h-2 rounded-full bg-gray-200" title="No run data"></div>
                                 ))}
                             </td>
-                            {/* --- END UPDATED RUNS COLUMN --- */}
 
                             <td className="p-4 font-mono text-xs text-gray-500 bg-gray-50 rounded inline-block my-3 mx-2 border px-2 py-1">{wf.schedule}</td>
                             <td className="p-4 text-sm text-gray-600">{wf.nextRun}</td>

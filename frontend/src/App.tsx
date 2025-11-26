@@ -3,14 +3,13 @@ import { signOut } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
-// Import Components
 import Home from './components/Home';
 import Login from './components/Login';
 
-
+// VERCEL FIX: API Base URL Definition. 
+// Uses Vercel's variable if available, otherwise uses local .env value (http://localhost:5000).
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// --- WRAPPER COMPONENT ---
 const AppContainer = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -18,7 +17,6 @@ const AppContainer = () => {
   const [token, setToken] = useState(""); 
   const navigate = useNavigate();
 
-  
   useEffect(() => {
     const savedLogin = localStorage.getItem("isLoggedIn");
     const savedEmail = localStorage.getItem("userEmail");
@@ -67,7 +65,6 @@ const AppContainer = () => {
     navigate('/login'); 
   };
 
-  
   return (
     <Routes>
         <Route 
@@ -78,7 +75,6 @@ const AppContainer = () => {
             path="/home" 
             element={isLoggedIn ? <Home userEmail={userEmail} username={username} token={token} onLogout={handleLogout} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/login" />} 
         />
-        
         <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

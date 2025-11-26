@@ -6,13 +6,13 @@ interface WorkflowFormProps {
     onClose: () => void;
     onSave: () => void;
     creatorEmail: string; 
+    API_BASE_URL: string;
 }
 
-const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
+const WorkflowForm = ({ onClose, onSave, creatorEmail, API_BASE_URL }: WorkflowFormProps) => {
     const [name, setName] = useState("");
     const [status, setStatus] = useState("Running");
     const [schedule, setSchedule] = useState("* * * * *");
-    
     const [tagsInput, setTagsInput] = useState(""); 
     
     const [loading, setLoading] = useState(false);
@@ -29,7 +29,6 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
             return;
         }
         
-        // FIX 1: Convert comma-separated string to array
         const tagsArray = tagsInput.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0);
 
         try {
@@ -39,10 +38,10 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                 userEmail: creatorEmail,
                 status, 
                 schedule,
-                tags: tagsArray // Sending user-defined tags
+                tags: tagsArray
             }; 
             
-            const res = await axios.post('http://localhost:5000/api/workflows', payload);
+            const res = await axios.post(`${API_BASE_URL}/api/workflows`, payload);
             
             if (res.status === 200 || res.status === 201) { 
                 onSave(); 
@@ -81,7 +80,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                         </div>
                     )}
 
-                
+                    {/* Workflow Name */}
                     <div>
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Workflow Name</label>
                         <input 
@@ -93,23 +92,24 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                             required 
                         />
                     </div>
-                    
+
+                    {/* TAGS FIELD (User Input) */}
                     <div>
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1">
-                            <Tag size={14} className="inline"/> Tags (Required Field/Context)
+                            <Tag size={14} className="inline"/> Tags (Context)
                         </label>
                         <input 
                             value={tagsInput} 
                             onChange={e => setTagsInput(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" 
                             placeholder="e.g. spark, kubernetes, reporting"
-                            required // Ensuring user enters at least one tag/context
+                            required 
                         />
                         <p className="text-[10px] text-gray-400 mt-1.5">Enter context tags separated by commas (e.g., tag1, tag2)</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-5">
-                    
+                        {/* Status Field */}
                         <div>
                             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Initial Status</label>
                             <div className="relative">
@@ -128,7 +128,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                             </div>
                         </div>
 
-                        
+                        {/* Schedule Field */}
                         <div>
                             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Schedule (Cron)</label>
                             <input 
@@ -143,7 +143,7 @@ const WorkflowForm = ({ onClose, onSave, creatorEmail }: WorkflowFormProps) => {
                     
                     <p className="text-xs text-gray-400 mt-1.5 pt-4 border-t border-gray-100">Owner is automatically set to your email ({creatorEmail}) for security.</p>
 
-                    
+                    {/* Footer Actions */}
                     <div className="pt-2 flex justify-end gap-3">
                         <button 
                             type="button" 

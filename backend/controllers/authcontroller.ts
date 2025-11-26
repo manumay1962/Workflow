@@ -10,7 +10,6 @@ const generateToken = (userId: number, email: string) => {
     return jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '1d' }); 
 };
 
-
 export const registerUser = async (req: Request, res: Response) => {
     const { email, password, username } = req.body;
     
@@ -33,11 +32,9 @@ export const registerUser = async (req: Request, res: Response) => {
         return res.json({ success: true, message: "Registration Successful! Please Login." });
 
     } catch (error) {
-        console.error("Register Error:", error);
         return res.status(500).json({ message: "Server Error during registration." });
     }
 };
-
 
 export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -68,11 +65,9 @@ export const loginUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error("Login Error:", error);
         return res.status(500).json({ message: "Server Error during login." });
     }
 };
-
 
 export const socialLoginUser = async (req: Request, res: Response) => {
     const { email, displayName } = req.body; 
@@ -86,7 +81,6 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         let isNewUser = false;
         
         if (!user) {
-           
             const hashedPassword = await bcrypt.hash("SOCIAL_LOGIN_USER_PASS", 10);
             const finalUsername = displayName || email.split('@')[0];
             
@@ -106,7 +100,6 @@ export const socialLoginUser = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error("Social Login Error:", error);
         return res.status(500).json({ message: "Server Error during social login." });
     }
 };

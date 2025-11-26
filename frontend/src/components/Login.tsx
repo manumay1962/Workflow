@@ -4,12 +4,13 @@ import { Github, X, AlertCircle } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, githubProvider } from '../firebaseConfig';
 
-
+// --- TYPES ---
 interface LoginProps {
     onLoginSuccess: (email: string, username: string, token: string) => void;
     API_BASE_URL: string;
 }
 
+// --- ONBOARDING MODAL ---
 const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (username: string, token: string) => void }) => {
     const [role, setRole] = useState("Developer");
     const [username, setUsername] = useState("");
@@ -51,7 +52,7 @@ const OnboardingModal = ({ email, onComplete }: { email: string, onComplete: (us
 };
 
 
-
+// --- FORGOT PASSWORD MODAL ---
 const ForgotPasswordModal = ({ show, onClose, API_BASE_URL }: { show: boolean, onClose: () => void, API_BASE_URL: string }) => {
     const [resetEmail, setResetEmail] = useState("");
     const [resetMsg, setResetMsg] = useState("");
@@ -94,7 +95,7 @@ const ForgotPasswordModal = ({ show, onClose, API_BASE_URL }: { show: boolean, o
 };
 
 
-
+// --- MAIN LOGIN COMPONENT ---
 const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
   const [isRegistering, setIsRegistering] = useState(false); 
   const [email, setEmail] = useState("");
@@ -136,7 +137,7 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
     try {
         const res = await signInWithPopup(auth, provider);
         
-        const userEmail = res.user.email || `hidden_${res.user.uid}`; 
+        let userEmail = res.user.email || `hidden_${res.user.uid}`; 
         
         if (userEmail.startsWith('hidden_')) { 
             setError("Warning: Email is private. Proceeding with UID."); 
@@ -177,9 +178,10 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
       
       <ForgotPasswordModal show={showForgot} onClose={() => setShowForgot(false)} API_BASE_URL={API_BASE_URL} />
 
+      {/* Main Container: Half-and-Half Layout */}
       <div className="w-full max-w-5xl h-[600px] flex rounded-2xl shadow-2xl overflow-hidden border border-white/50">
         
-        {/* Left Half: Welcome/Blue Section */}
+        {/* Left Half: Welcome/Blue Section (Hidden on Mobile) */}
         <div className="hidden md:flex w-1/2 bg-blue-700 items-center justify-center p-12 text-white">
             <div className="text-center">
                 <h2 className="text-5xl font-extrabold mb-4 tracking-tight">
@@ -222,14 +224,13 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
                 </>
             )}
             
-        
+            {/* --- Messages & Fixed Placeholder (Stability Fix) --- */}
             <div className="mb-4 h-12">
-                {/* FIX: Error/Success Placeholder for Stability */}
                 {error && <div className="p-3 text-red-700 bg-red-50 rounded-lg border border-red-100 flex items-center gap-2"><AlertCircle size={16} />{error}</div>}
                 {successMsg && <div className="p-3 text-green-700 bg-green-50 rounded-lg border border-green-100 flex items-center gap-2">{successMsg}</div>}
             </div>
             
-    
+            {/* --- Form --- */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegistering && (
                   <div>
@@ -254,7 +255,7 @@ const Login = ({ onLoginSuccess, API_BASE_URL }: LoginProps) => {
               </button>
             </form>
 
-    
+            {/* --- Toggle Link --- */}
             <div className="mt-6 text-center text-sm">
                 {isRegistering ? (
                     <p className="text-gray-600">Already have an account? <button onClick={() => setIsRegistering(false)} className="text-blue-600 font-bold hover:underline">Sign In</button></p>

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
- 
+
 import bcrypt from 'bcryptjs';
 import { loginUser, registerUser, socialLoginUser } from './controllers/authcontroller';
 
@@ -10,12 +10,12 @@ dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT; 
 
 app.use(cors());
 app.use(express.json()); 
 
-
+// --- SEEDING ---
 async function seedDatabase() {
   try {
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
@@ -28,18 +28,15 @@ async function seedDatabase() {
       update: {}, 
       create: { email: ADMIN_EMAIL, password: hashedPassword, username: "Admin" },
     });
-    console.log(`✅ Admin Account Ready (Password Hashed).`);
 
     const count = await prisma.workflow.count();
     if (count === 0) {
-      console.log("🌱 Seeding Public Workflows...");
       await prisma.workflow.createMany({
         data: [
           { id: "wf001", name: "Daily ETL Pipeline (Public)", tags: ["etl"], status: "Running", owner: ADMIN_EMAIL, runs: ["success"], schedule: "Daily", nextRun: "Tomorrow", isPublic: true },
           { id: "wf002", name: "Weekly Sync (Public)", tags: ["sql"], status: "Paused", owner: ADMIN_EMAIL, runs: ["success"], schedule: "Weekly", nextRun: "Next Week", isPublic: true }
         ]
       });
-       console.log("✅ Public Workflows Seeded.");
     }
   } catch (error) {
     console.error("Seed Error:", error);
@@ -47,7 +44,9 @@ async function seedDatabase() {
 }
 seedDatabase();
 
+// --- API ENDPOINTS ---
 
+// 1. AUTH ROUTES
 app.post('/api/register', registerUser);
 app.post('/api/login', loginUser);
 app.post('/api/auth/social', socialLoginUser); 
@@ -74,8 +73,7 @@ app.put('/api/workflows/:id/status', async (req: any, res: any) => {
         
         return res.status(404).json({ message: "Workflow ID not found to update." });
 
-    } catch (error: any) {
-        console.error(" DB/Internal Error on PUT:", error);
+    } catch (error) {
         return res.status(500).json({ 
             message: "Error updating workflow status. Check server logs."
         });
@@ -111,7 +109,7 @@ app.get('/api/workflows', async (req, res) => {
     }
 });
 
-
+// 3. OTHER ROUTES
 app.post('/api/forgot-password', async (req: any, res: any) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email required" });
@@ -120,5 +118,6 @@ app.post('/api/forgot-password', async (req: any, res: any) => {
 
 
 app.listen(port, () => {
-    console.log(` Server running on http://localhost:${port}`);
+    
+    console.log(`🚀 Server listening on port ${port}`); 
 });
