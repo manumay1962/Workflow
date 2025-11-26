@@ -7,9 +7,9 @@ import Home from './components/Home';
 import Login from './components/Login';
 
 // VERCEL FIX: API Base URL Definition. 
-// Uses Vercel's variable if available, otherwise uses local .env value (http://localhost:5000).
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// --- WRAPPER COMPONENT ---
 const AppContainer = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -17,6 +17,7 @@ const AppContainer = () => {
   const [token, setToken] = useState(""); 
   const navigate = useNavigate();
 
+  // Load state from localStorage on mount (Persistence)
   useEffect(() => {
     const savedLogin = localStorage.getItem("isLoggedIn");
     const savedEmail = localStorage.getItem("userEmail");
@@ -26,7 +27,7 @@ const AppContainer = () => {
     if (savedLogin === "true" && savedEmail && savedToken) { 
         setIsLoggedIn(true); 
         setUserEmail(savedEmail);
-        setUsername(savedName || "User");
+        setUsername(savedName ?? "User"); // FIX 1: Use nullish coalescing (??)
         setToken(savedToken); 
         
         if (window.location.pathname === '/login' || window.location.pathname === '/') {
@@ -42,12 +43,12 @@ const AppContainer = () => {
   const handleLogin = (email: string, uName: string, jwtToken: string) => {
     localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("userEmail", email);
-    localStorage.setItem("username", uName);
+    localStorage.setItem("username", uName ?? "User"); // FIX 2: Ensure non-null value is saved
     localStorage.setItem("token", jwtToken);
     
     setIsLoggedIn(true);
     setUserEmail(email);
-    setUsername(uName);
+    setUsername(uName ?? "User");
     setToken(jwtToken);
     
     navigate('/home'); 
@@ -80,6 +81,7 @@ const AppContainer = () => {
   );
 }
 
+// --- MAIN APP ---
 export default function App() {
   return (
     <Router>

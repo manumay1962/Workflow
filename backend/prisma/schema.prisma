@@ -11,7 +11,7 @@ model User {
   id       Int     @id @default(autoincrement())
   email    String  @unique
   password String
-  username String? 
+  username String?
 }
 
 model Workflow {
@@ -23,5 +23,5 @@ model Workflow {
   runs     String[]
   schedule String
   nextRun  String
-  isPublic Boolean @default(false) 
+  isPublic Boolean @default(false)
 }
