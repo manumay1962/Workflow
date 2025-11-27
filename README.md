@@ -48,3 +48,18 @@ Ensure you have the following installed:
 ```bash
 git clone [YOUR_REPO_URL]
 cd [your-project-folder]
+
+
+# Frontend dependencies
+npm install --prefix frontend 
+
+# Backend dependencies
+npm install --prefix backend
+
+
+# .env file in the backend directory
+PORT=5000
+DATABASE_URL="postgresql://user:password@host:port/database_name"
+JWT_SECRET="YOUR_SECRET_KEY_HERE"
+# Add any other required secrets
+
