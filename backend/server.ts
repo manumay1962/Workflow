@@ -14,7 +14,6 @@ const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 5000;
 
-// For __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -105,14 +104,10 @@ app.post('/api/forgot-password', async (req: Request, res: Response) => {
 });
 
 
-// SPA SERVING & CATCH-ALL ROUTING
-// Assumes that the frontend build output (dist) is copied into the backend directory
 const FRONTEND_BUILD_PATH = path.join(__dirname, 'dist'); 
 
-// Serve static files
 app.use(express.static(FRONTEND_BUILD_PATH)); 
 
-// Catch-all route for SPA (Must be the last route)
 app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(FRONTEND_BUILD_PATH, 'index.html'));
 });
