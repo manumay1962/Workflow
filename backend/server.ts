@@ -1,9 +1,12 @@
 // server.ts
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
-import { loginUser, registerUser, socialLoginUser } from './controllers/authcontroller';
+import { loginUser, registerUser, socialLoginUser } from './controllers/authcontroller.js';
+
 
 dotenv.config();
 
@@ -11,21 +14,24 @@ const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 5000;
 
+// For __dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 app.use(cors({
   origin: ['https://workflow-1-kq5k.onrender.com'], 
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization'], 
 }));
-
 app.use(express.json());
 
-// ----------------- AUTH ROUTES -----------------
+
 app.post('/api/register', registerUser);
 app.post('/api/login', loginUser);
 app.post('/api/auth/social', socialLoginUser);
 
-// ------------- WORKFLOW MANAGEMENT ROUTES -------------
 app.put('/api/workflows/:id/status', async (req: any, res: any) => {
   const { id } = req.params;
   const { newStatus } = req.body;
@@ -53,7 +59,6 @@ app.put('/api/workflows/:id/status', async (req: any, res: any) => {
 
 app.post('/api/workflows', async (req: any, res: any) => {
   const { name, owner, schedule, status, userEmail, tags } = req.body;
-
   if (!name || !userEmail) return res.status(400).json({ message: "Name and User Email (Creator) are required" });
 
   try {
@@ -90,14 +95,20 @@ app.get('/api/workflows', async (req, res) => {
   }
 });
 
-// ----------------- OTHER ROUTES -----------------
 app.post('/api/forgot-password', async (req: any, res: any) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email required" });
   return res.json({ message: `Reset link sent to ${email}` });
 });
 
-// ----------------- START SERVER -----------------
+
+app.use(express.static(path.join(__dirname, '../frontend/dist'))); // Adjust if your build folder is elsewhere
+
+// Catch-all route for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server listening on port ${port}`);
 });

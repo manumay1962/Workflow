@@ -17,7 +17,7 @@ const AppContainer = () => {
   const [token, setToken] = useState(""); 
   const navigate = useNavigate();
 
-  // Load state from localStorage on mount (Persistence)
+  
   useEffect(() => {
     const savedLogin = localStorage.getItem("isLoggedIn");
     const savedEmail = localStorage.getItem("userEmail");
@@ -43,7 +43,7 @@ const AppContainer = () => {
   const handleLogin = (email: string, uName: string, jwtToken: string) => {
     localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("userEmail", email);
-    localStorage.setItem("username", uName ?? "User"); // FIX 2: Ensure non-null value is saved
+    localStorage.setItem("username", uName ?? "User"); 
     localStorage.setItem("token", jwtToken);
     
     setIsLoggedIn(true);

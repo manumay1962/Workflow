@@ -4,7 +4,7 @@ import { LogOut,  Search, Plus, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import WorkflowForm from './WorkflowForm';
 
-// --- TYPES ---
+
 interface Workflow {
   id: string;
   name: string;
