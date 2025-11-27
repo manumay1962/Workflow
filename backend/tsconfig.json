@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "ESNext",      
-    "rootDir": "src",
+    "module": "ESNext",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "Node"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["*.ts", "prisma/**/*.ts"], 
+  "exclude": ["dist", "node_modules"]
 }
