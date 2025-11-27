@@ -47,6 +47,8 @@ Ensure you have the following installed:
 
 <img width="1882" height="870" alt="Screenshot 2025-11-27 062252" src="https://github.com/user-attachments/assets/02706c61-cb16-4056-b2ac-a09b94ffa2b7" />
 <img width="1900" height="978" alt="Screenshot 2025-11-27 062358" src="https://github.com/user-attachments/assets/2c9ee8b2-f091-41c6-9ab2-0e40b9109a1e" />
+<img width="1851" height="883" alt="image" src="https://github.com/user-attachments/assets/aa375b36-bc9a-4315-b6a0-688928b5387f" />
+
 
 
 
